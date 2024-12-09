@@ -8,3 +8,5 @@ numpy
 pandas
 pyyaml
 pylint
+openshift
+kubernetes
