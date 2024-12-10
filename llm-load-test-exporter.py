@@ -11,10 +11,30 @@ import logging
 metrics = Flask(__name__)
 registry = CollectorRegistry()
 
-itl_metric = Gauge("itl", "Inter-token Latency (ms)", registry=registry)
-ttft_metric = Gauge("ttft", "Time to First Token (ms)", registry=registry)
-response_time_metric = Gauge("response_time", "Response Time (ms)", registry=registry)
-throughput_metric = Gauge("throughput", "Throughput (requests/sec)", registry=registry)
+itl_metric = Gauge(
+    "itl",
+    "Inter-token Latency (ms)",
+    labelnames=["model", "namespace"],
+    registry=registry,
+)
+ttft_metric = Gauge(
+    "ttft",
+    "Time to First Token (ms)",
+    labelnames=["model", "namespace"],
+    registry=registry,
+)
+response_time_metric = Gauge(
+    "response_time",
+    "Response Time (ms)",
+    labelnames=["model", "namespace"],
+    registry=registry,
+)
+throughput_metric = Gauge(
+    "throughput",
+    "Throughput (requests/sec)",
+    labelnames=["model", "namespace"],
+    registry=registry,
+)
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -41,7 +61,7 @@ def set_config(model_name, host_url, namespace):
 
     config["plugin_options"]["model_name"] = model_name
     config["plugin_options"]["host"] = host_url
-    config["output"]["file"] = f"{model_name}-{namespace}"
+    config["output"]["file"] = f"{model_name}_{namespace}.json"
 
     with open(config_path, "w") as file:
         try:
@@ -65,7 +85,29 @@ def gather_model_info():
         set_config(model_name, host_url, namespace)
 
         llm_load_test()
-        print(f"Load test for {model_name} completed ")
+
+        output_file = f"./llm-load-test/output/{model_name}_{namespace}.json"
+
+        if os.path.exists(output_file):
+            with open(output_file, "r") as f:
+                results = json.load(f)
+
+                summary = results.get("summary", {})
+                if summary:
+                    itl_metric.labels(model=model_name, namespace=namespace).set(
+                        summary["itl"]["mean"]
+                    )
+                    ttft_metric.labels(model=model_name, namespace=namespace).set(
+                        summary["ttft"]["mean"]
+                    )
+                    response_time_metric.labels(
+                        model=model_name, namespace=namespace
+                    ).set(summary["response_time"]["mean"])
+                    throughput_metric.labels(model=model_name, namespace=namespace).set(
+                        summary["throughput"]
+                    )
+
+        print(f"Uploaded metrics for model: {model_name}")
 
 
 def llm_load_test():
@@ -78,23 +120,11 @@ def llm_load_test():
 
 @metrics.route("/metrics", methods=["GET"])
 def export_metrics():
-    output_file = "./llm-load-test/output/output-001.json"
-
-    if os.path.exists(output_file):
-        with open(output_file, "r") as f:
-            results = json.load(f)
-
-        summary = results.get("summary", {})
-        if summary:
-            itl_metric.set(summary["itl"]["mean"])
-            ttft_metric.set(summary["ttft"]["mean"])
-            response_time_metric.set(summary["response_time"]["mean"])
-            throughput_metric.set(summary["throughput"])
-        return (
-            generate_latest(registry),
-            200,
-            {"Content-Type": "text/plain; charset=utf-8"},
-        )
+    return (
+        generate_latest(registry),
+        200,
+        {"Content-Type": "text/plain; charset=utf-8"},
+    )
 
 
 if __name__ == "__main__":
