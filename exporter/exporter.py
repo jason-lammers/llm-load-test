@@ -79,7 +79,7 @@ def set_metrics():
                     summary["throughput"]
                 )
 
-        print(f"Uploaded metrics for model: {model_name}")
+        LOG.info(f"Uploaded metrics for model: {model_name}")
 
 
 def create_app(**config):

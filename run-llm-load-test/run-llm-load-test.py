@@ -1,38 +1,9 @@
-from flask import Flask
 import subprocess
-from prometheus_client import Gauge, CollectorRegistry
 import yaml
 from kubernetes import config, client
 import logging
-
-
-metrics = Flask(__name__)
-registry = CollectorRegistry()
-
-itl_metric = Gauge(
-    "itl",
-    "Inter-token Latency (ms)",
-    labelnames=["model", "namespace"],
-    registry=registry,
-)
-ttft_metric = Gauge(
-    "ttft",
-    "Time to First Token (ms)",
-    labelnames=["model", "namespace"],
-    registry=registry,
-)
-response_time_metric = Gauge(
-    "response_time",
-    "Response Time (ms)",
-    labelnames=["model", "namespace"],
-    registry=registry,
-)
-throughput_metric = Gauge(
-    "throughput",
-    "Throughput (requests/sec)",
-    labelnames=["model", "namespace"],
-    registry=registry,
-)
+import time
+import os
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -65,7 +36,7 @@ def set_config(model_name, host_url, namespace):
         try:
             config = yaml.dump(config, file)
         except Exception as e:
-            print(f"Error writing config.yaml file: {e}")
+            LOG.error(f"Error writing config.yaml file: {e}")
             return
 
 
@@ -85,18 +56,18 @@ def gather_metrics():
 
         llm_load_test()
 
-        print(f"Completed load test for model: {model_name} in {namespace} namespace")
-
+        LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
 
 # Run llm-load-test
 def llm_load_test():
     try:
-        subprocess.run(
-            ["python", "load_test.py"], check=True, cwd="/shared_data/llm-load-test"
-        )
+        subprocess.run(["python", "load_test.py"], check=True, cwd="/shared_data/llm-load-test")
     except Exception as e:
         return f"Error running load_test.py: {e}"
 
 
 if __name__ == "__main__":
-    gather_metrics()
+    wait = int(os.environ.get('WAIT_TIME'))
+    while True:
+        gather_metrics()
+        time.sleep(wait)

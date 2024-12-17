@@ -10,5 +10,5 @@ resources:
   - serviceaccount.yaml
   - clusterrole.yaml
   - clusterrolebinding.yaml
-  - cronjob.yaml
+  # - cronjob.yaml
   - pvc.yaml

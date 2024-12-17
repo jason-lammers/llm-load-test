@@ -27,6 +27,20 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+        - name: run-llm-load-test
+          image: quay.io/rh-ee-istaplet/nerc-tools:run-llm-load-test
+          imagePullPolicy: Always
+          command: ["python", "run-llm-load-test.py"]
+          volumeMounts:
+            - name: llm-load-test-dir
+              mountPath: /shared_data
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          env:
+          - name: WAIT_TIME
+            value: "60"
       serviceAccountName: llm-load-test-sa
       volumes:
         - name: llm-load-test-dir
