@@ -1,14 +1,11 @@
-from flask import Flask, request, jsonify
-import subprocess
+from flask import Flask
 from prometheus_client import Gauge, generate_latest, CollectorRegistry
 import os
 import json
-import yaml
 from kubernetes import config, client
 import logging
 
 
-metrics = Flask(__name__)
 registry = CollectorRegistry()
 
 itl_metric = Gauge(
@@ -40,7 +37,7 @@ LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 try:
-    config.load_kube_config()
+    config.load_incluster_config()
 except config.ConfigException as e:
     LOG.error("Could not configure Kubernetes client: %s", str(e))
     exit(1)
@@ -50,10 +47,9 @@ v1 = client.CoreV1Api()
 
 # Read from output files and set metrics
 def set_metrics():
+    output_directory = "/shared_data/llm-load-test/output/"
 
-    output_directory = "./llm-load-test/output/"
-
-    output_directory_encoded = os.fsencode("./llm-load-test/output/")
+    output_directory_encoded = os.fsencode("/shared_data/llm-load-test/output/")
 
     # Loop through files in output directory
     output_files = os.listdir(output_directory_encoded)
@@ -76,9 +72,9 @@ def set_metrics():
                 ttft_metric.labels(model=model_name, namespace=namespace).set(
                     summary["ttft"]["mean"]
                 )
-                response_time_metric.labels(
-                    model=model_name, namespace=namespace
-                ).set(summary["response_time"]["mean"])
+                response_time_metric.labels(model=model_name, namespace=namespace).set(
+                    summary["response_time"]["mean"]
+                )
                 throughput_metric.labels(model=model_name, namespace=namespace).set(
                     summary["throughput"]
                 )
@@ -86,15 +82,17 @@ def set_metrics():
         print(f"Uploaded metrics for model: {model_name}")
 
 
-@metrics.route("/metrics", methods=["GET"])
-def export_metrics():
-    return (
-        generate_latest(registry),
-        200,
-        {"Content-Type": "text/plain; charset=utf-8"},
-    )
+def create_app(**config):
+    app = Flask(__name__)
 
+    @app.route("/metrics", methods=["GET"])
+    def export_metrics():
+        set_metrics()
 
-if __name__ == "__main__":
-    set_metrics()
-    metrics.run(host="0.0.0.0", port=8443)
+        return (
+            generate_latest(registry),
+            200,
+            {"Content-Type": "text/plain; charset=utf-8"},
+        )
+
+    return app

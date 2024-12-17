@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gather-llm-metrics
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: run-llm-load-test
+        spec:
+          serviceAccountName: llm-load-test-sa
+          containers:
+          - name: llm-load-test
+            image: quay.io/rh-ee-istaplet/nerc-tools:run-llm-load-test
+            command: ["python", "run-llm-load-test.py"]
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: llm-load-test-dir
+                mountPath: /shared_data
+          restartPolicy: Never
+          volumes:
+            - name: llm-load-test-dir
+              persistentVolumeClaim:
+                claimName: llm-load-test-pvc
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7

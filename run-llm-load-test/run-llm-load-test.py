@@ -1,8 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask
 import subprocess
-from prometheus_client import Gauge, generate_latest, CollectorRegistry
-import os
-import json
+from prometheus_client import Gauge, CollectorRegistry
 import yaml
 from kubernetes import config, client
 import logging
@@ -40,7 +38,7 @@ LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 try:
-    config.load_kube_config()
+    config.load_incluster_config()
 except config.ConfigException as e:
     LOG.error("Could not configure Kubernetes client: %s", str(e))
     exit(1)
@@ -50,7 +48,7 @@ v1 = client.CoreV1Api()
 
 # Configure llm-load-test config.yaml
 def set_config(model_name, host_url, namespace):
-    config_path = "./llm-load-test/config.yaml"
+    config_path = "/shared_data/llm-load-test/config.yaml"
 
     with open(config_path, "r") as file:
         try:
@@ -89,10 +87,13 @@ def gather_metrics():
 
         print(f"Completed load test for model: {model_name} in {namespace} namespace")
 
+
 # Run llm-load-test
 def llm_load_test():
     try:
-        subprocess.run(["python", "load_test.py"], check=True, cwd="llm-load-test")
+        subprocess.run(
+            ["python", "load_test.py"], check=True, cwd="/shared_data/llm-load-test"
+        )
     except Exception as e:
         return f"Error running load_test.py: {e}"
 
