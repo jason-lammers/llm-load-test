@@ -50,7 +50,7 @@ def gather_metrics():
     for pod in model_pods.items:
         model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
         namespace = pod.metadata.namespace
-        host_url = f"https://{model_name}-{namespace}.apps.albany.nerc.mghpcc.org"
+        host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
 
         set_config(model_name, host_url, namespace)
 
