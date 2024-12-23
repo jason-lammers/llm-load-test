@@ -9,26 +9,32 @@ import logging
 registry = CollectorRegistry()
 
 itl_metric = Gauge(
-    "itl",
+    "llm_performance_itl",
     "Inter-token Latency (ms)",
     labelnames=["model", "namespace"],
     registry=registry,
 )
 ttft_metric = Gauge(
-    "ttft",
+    "llm_performance_ttft",
     "Time to First Token (ms)",
     labelnames=["model", "namespace"],
     registry=registry,
 )
 response_time_metric = Gauge(
-    "response_time",
+    "llm_performance_response_time",
     "Response Time (ms)",
     labelnames=["model", "namespace"],
     registry=registry,
 )
 throughput_metric = Gauge(
-    "throughput",
+    "llm_performance_throughput",
     "Throughput (requests/sec)",
+    labelnames=["model", "namespace"],
+    registry=registry,
+)
+ttft_metric = Gauge(
+    "llm_performance_latency",
+    "Latency (ms)",
     labelnames=["model", "namespace"],
     registry=registry,
 )
@@ -77,6 +83,9 @@ def set_metrics():
                 )
                 throughput_metric.labels(model=model_name, namespace=namespace).set(
                     summary["throughput"]
+                )
+                throughput_metric.labels(model=model_name, namespace=namespace).set(
+                    summary["tpot"]["mean"]
                 )
 
         LOG.info(f"Uploaded metrics for model: {model_name}")
