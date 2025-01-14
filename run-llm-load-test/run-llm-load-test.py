@@ -4,6 +4,7 @@ from kubernetes import config, client
 import logging
 import time
 import os
+import base64
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -18,7 +19,7 @@ v1 = client.CoreV1Api()
 
 
 # Configure llm-load-test config.yaml
-def set_config(model_name, host_url, namespace):
+def set_config(model_name, host_url, namespace, enable_auth):
     config_path = "/shared_data/llm-load-test/config.yaml"
 
     with open(config_path, "r") as file:
@@ -31,6 +32,13 @@ def set_config(model_name, host_url, namespace):
     config["plugin_options"]["model_name"] = model_name
     config["plugin_options"]["host"] = host_url
     config["output"]["file"] = f"{model_name}_{namespace}.json"
+
+    # Set authorization token if needed
+    if enable_auth:
+        sec = v1.read_namespaced_secret(f"default-name-{model_name}-sa", namespace).data
+        auth_token = base64.b64decode(sec["token"]).decode('utf-8')
+        config["plugin_options"]["authorization"] = auth_token
+
 
     with open(config_path, "w") as file:
         try:
@@ -48,15 +56,40 @@ def gather_metrics():
     )
 
     for pod in model_pods.items:
-        model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
-        namespace = pod.metadata.namespace
-        host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
 
-        set_config(model_name, host_url, namespace)
+        # Make sure the model is already running, not in process of being created
+        if pod.status.phase == 'Running':
 
-        llm_load_test()
+            # Check if token required for querying model
+            annotations = pod.metadata.annotations
+            enable_auth = annotations.get('security.opendatahub.io/enable-auth')
+        
+            # TODO: Clean up if else statement
+            if not enable_auth:
 
-        LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
+                model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
+                namespace = pod.metadata.namespace
+                host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
+
+                set_config(model_name, host_url, namespace, enable_auth)
+
+                llm_load_test()
+
+                LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
+
+            else: 
+
+                enable_auth = True
+
+                model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
+                namespace = pod.metadata.namespace
+                host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
+
+                set_config(model_name, host_url, namespace, enable_auth)
+
+                llm_load_test()
+
+                LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
 
 # Run llm-load-test
 def llm_load_test():

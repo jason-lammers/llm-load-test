@@ -39,7 +39,7 @@ spec:
               cpu: 500m
               memory: 512Mi
           env:
-          - name: WAIT_TIME
+          - name: WAIT_TIME # Change to modify how often application is run
             value: "60"
       serviceAccountName: llm-load-test-sa
       volumes:
