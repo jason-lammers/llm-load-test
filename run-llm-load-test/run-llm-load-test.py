@@ -57,8 +57,11 @@ def gather_metrics():
 
     for pod in model_pods.items:
 
+        gather_metrics = pod.metadata.labels.get('gather_llm_metrics')
+
         # Make sure the model is already running, not in process of being created
-        if pod.status.phase == 'Running':
+        # and also has gather_metrics label
+        if pod.status.phase == 'Running' and gather_metrics:
 
             # Check if token required for querying model
             annotations = pod.metadata.annotations
@@ -90,6 +93,9 @@ def gather_metrics():
                 llm_load_test()
 
                 LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
+
+        else:
+            print(f"model: {pod.metadata.labels["serving.kserve.io/inferenceservice"]} not set to collect metrics")
 
 # Run llm-load-test
 def llm_load_test():
