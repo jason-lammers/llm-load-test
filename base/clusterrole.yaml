@@ -4,5 +4,5 @@ metadata:
   name: llm-load-test-exporter-role
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods", "secrets"]
   verbs: ["get", "list", "watch", "patch"]
