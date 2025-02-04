@@ -4,7 +4,7 @@ metadata:
   name: llm-load-test-exporter
 spec:
   ports:
-    - name: https
+    - name: web
       protocol: TCP
-      port: 443
-      targetPort: 5001
+      port: 8080
+      targetPort: 8080

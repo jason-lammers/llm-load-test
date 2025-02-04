@@ -19,7 +19,7 @@ spec:
           image: quay.io/rh-ee-istaplet/nerc-tools:llm-load-test-exporter
           imagePullPolicy: Always
           ports:
-            - containerPort: 443
+            - containerPort: 8080
           volumeMounts:
             - name: llm-load-test-dir
               mountPath: /shared_data
@@ -40,10 +40,8 @@ spec:
               memory: 512Mi
           env:
           - name: WAIT_TIME # Change to modify how often application is run
-            value: "60"
+            value: "600"
       serviceAccountName: llm-load-test-sa
       volumes:
         - name: llm-load-test-dir
-          persistentVolumeClaim:
-            claimName: llm-load-test-pvc
-
+          emptyDir: {}
