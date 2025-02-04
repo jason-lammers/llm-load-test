@@ -32,7 +32,7 @@ throughput_metric = Gauge(
     labelnames=["model", "namespace"],
     registry=registry,
 )
-ttft_metric = Gauge(
+latency_metric = Gauge(
     "llm_performance_latency",
     "Latency (ms)",
     labelnames=["model", "namespace"],
@@ -84,7 +84,7 @@ def set_metrics():
                 throughput_metric.labels(model=model_name, namespace=namespace).set(
                     summary["throughput"]
                 )
-                throughput_metric.labels(model=model_name, namespace=namespace).set(
+                latency_metric.labels(model=model_name, namespace=namespace).set(
                     summary["tpot"]["mean"]
                 )
 
