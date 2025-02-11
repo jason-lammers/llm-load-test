@@ -11,3 +11,4 @@ resources:
   - clusterrole.yaml
   - clusterrolebinding.yaml
   - servicemonitor.yaml
+  - configmap.yaml
