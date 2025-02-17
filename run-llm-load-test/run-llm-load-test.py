@@ -65,34 +65,18 @@ def gather_metrics():
 
             # Check if token required for querying model
             annotations = pod.metadata.annotations
-            enable_auth = annotations.get('security.opendatahub.io/enable-auth')
-        
-            # TODO: Clean up if else statement
-            if not enable_auth:
+            enable_auth = True if annotations.get('security.opendatahub.io/enable-auth') == "true" else False   
 
-                model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
-                namespace = pod.metadata.namespace
-                host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
+            # Grab config information
+            model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
+            namespace = pod.metadata.namespace
+            host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
 
-                set_config(model_name, host_url, namespace, enable_auth)
+            set_config(model_name, host_url, namespace, enable_auth)
 
-                llm_load_test()
+            llm_load_test()
 
-                LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
-
-            else: 
-
-                enable_auth = True
-
-                model_name = pod.metadata.labels["serving.kserve.io/inferenceservice"]
-                namespace = pod.metadata.namespace
-                host_url = f"https://{model_name}.{namespace}.svc.cluster.local" 
-
-                set_config(model_name, host_url, namespace, enable_auth)
-
-                llm_load_test()
-
-                LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
+            LOG.info(f"Completed load test for model: {model_name} in {namespace} namespace")
 
         else:
             print(f"model: {pod.metadata.labels["serving.kserve.io/inferenceservice"]} not set to collect metrics")
