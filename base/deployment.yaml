@@ -10,7 +10,7 @@ spec:
         - name: init-container
           image: alpine/git:latest  
           imagePullPolicy: Always
-          command: ['sh', '-c', 'git clone https://github.com/openshift-psap/llm-load-test.git /shared_data/llm-load-test']
+          command: ['sh', '-c', 'git clone -b auth-token https://github.com/IsaiahStapleton/llm-load-test.git /shared_data/llm-load-test']
           volumeMounts:
             - name: llm-load-test-dir
               mountPath: /shared_data
@@ -40,7 +40,7 @@ spec:
               memory: 512Mi
           env:
           - name: WAIT_TIME # Change to modify how often application is run
-            value: "600"
+            value: "60"
       serviceAccountName: llm-load-test-sa
       volumes:
         - name: llm-load-test-dir
