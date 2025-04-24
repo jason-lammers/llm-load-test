@@ -4,10 +4,9 @@ metadata:
   labels:
     k8s-app: llm-load-test-exporter
   name: llm-load-test-exporter
-  namespace: granite-instruct
 spec:
   endpoints:
-  - interval: 120s
+  - interval: 180s
     port: web
     scheme: http
   selector:

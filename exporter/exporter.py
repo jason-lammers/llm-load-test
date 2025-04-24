@@ -53,6 +53,11 @@ v1 = client.CoreV1Api()
 
 # Read from output files and set metrics
 def set_metrics():
+
+    # Clear previous metrics from all gauges
+    for gauge in [itl_metric, ttft_metric, response_time_metric, throughput_metric, latency_metric]:
+            gauge._metrics.clear()
+    
     output_directory = "/shared_data/llm-load-test/output/"
 
     output_directory_encoded = os.fsencode("/shared_data/llm-load-test/output/")
