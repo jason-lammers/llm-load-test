@@ -19,7 +19,8 @@ spec:
           image: quay.io/rh-ee-istaplet/nerc-tools:llm-load-test-exporter
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - name: web
+              containerPort: 8080
           volumeMounts:
             - name: llm-load-test-dir
               mountPath: /shared_data
