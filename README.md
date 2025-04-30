@@ -1,13 +1,14 @@
 # llm-load-test-exporter
 
-### Overview
+## Overview
+
 The purpose of this program is to run [llm-load-test](https://github.com/openshift-psap/llm-load-test) application and then serve the resulting metrics to a /metrics endpoint. This is meant to be run in a kubernetes/openshift environment.
 
 This application is split into 2:
 1. run-llm-load-test: This is the application that actually runs llm-load-test against all models running in a cluster, and saves the output into a volume.
 2. exporter: This application exports the results of running llm-load-test to the /metrics endpoint. 
 
-### Deploying Application in OpenShift
+## Deploying Application in OpenShift
 
 In order to deploy this application in OpenShift do the following:
 
@@ -15,7 +16,7 @@ In order to deploy this application in OpenShift do the following:
 2. Modify how often the load test is run by modifying WAIT_TIME env variable in base/deployment.yaml
 3. Run `oc create -k base/`
 
-### Example output when querying the /metrics endpoint:
+## Example output when querying the /metrics endpoint
 
 ```
 # HELP llm_performance_itl Inter-token Latency (ms)
