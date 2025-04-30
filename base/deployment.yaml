@@ -7,10 +7,10 @@ spec:
   template:
     spec:
       initContainers:                
-        - name: init-container
-          image: alpine/git:latest  
+        - name: clone-repository
+          image: docker.io/alpine/git:latest  
           imagePullPolicy: Always
-          command: ['sh', '-c', 'git clone https://github.com/openshift-psap/llm-load-test.git /shared_data/llm-load-test']
+          command: ['git', 'clone', 'https://github.com/openshift-psap/llm-load-test.git /shared_data/llm-load-test']
           volumeMounts:
             - name: llm-load-test-dir
               mountPath: /shared_data
