@@ -6,9 +6,10 @@ metadata:
   name: llm-load-test-exporter
 spec:
   endpoints:
-  - interval: 180s
-    port: web
-    scheme: http
+    - interval: 120s
+      port: web
+      scheme: http
+      path: /metrics
   selector:
     matchLabels:
       app: llm-load-test-exporter

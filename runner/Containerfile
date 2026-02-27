@@ -1,0 +1,20 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install git (needed for pip install from git URL)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY runner.py ./
+
+# Copy the default dataset (small subset for quick tests)
+# Users can override via DATASET_PATH env var + volume mount
+COPY datasets/ ./datasets/
+
+CMD ["python", "runner.py"]
+

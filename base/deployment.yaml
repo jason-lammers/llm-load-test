@@ -4,16 +4,14 @@ metadata:
   name: llm-load-test-exporter
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: llm-load-test-exporter
   template:
+    metadata:
+      labels:
+        app: llm-load-test-exporter
     spec:
-      initContainers:                
-        - name: clone-repository
-          image: docker.io/alpine/git:latest  
-          imagePullPolicy: Always
-          command: ['git', 'clone', 'https://github.com/openshift-psap/llm-load-test.git /shared_data/llm-load-test']
-          volumeMounts:
-            - name: llm-load-test-dir
-              mountPath: /shared_data
       containers:
         - name: exporter
           image: quay.io/rh-ee-istaplet/nerc-tools:llm-load-test-exporter
@@ -22,27 +20,57 @@ spec:
             - name: web
               containerPort: 8080
           volumeMounts:
-            - name: llm-load-test-dir
+            - name: shared-data
               mountPath: /shared_data
-          resources:
-            limits:
-              cpu: 500m
-              memory: 512Mi
-        - name: run-llm-load-test
-          image: quay.io/rh-ee-istaplet/nerc-tools:run-llm-load-test
-          imagePullPolicy: Always
-          command: ["python", "run-llm-load-test.py"]
-          volumeMounts:
-            - name: llm-load-test-dir
-              mountPath: /shared_data
-          resources:
-            limits:
-              cpu: 500m
-              memory: 512Mi
           env:
-          - name: WAIT_TIME # Change to modify how often application is run
-            value: "60"
+            - name: OUTPUT_DIR
+              value: "/shared_data/output"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: web
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: web
+            initialDelaySeconds: 5
+            periodSeconds: 10
+        - name: runner
+          image: quay.io/rh-ee-istaplet/nerc-tools:llm-load-test-runner
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: shared-data
+              mountPath: /shared_data
+          env:
+            - name: OUTPUT_DIR
+              value: "/shared_data/output"
+            - name: WAIT_TIME
+              value: "120"
+            - name: CONCURRENCY
+              value: "8"
+            - name: DURATION
+              value: "30"
+            - name: STREAMING
+              value: "true"
+            - name: ENDPOINT
+              value: "/v1/chat/completions"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
       serviceAccountName: llm-load-test-sa
       volumes:
-        - name: llm-load-test-dir
+        - name: shared-data
           emptyDir: {}

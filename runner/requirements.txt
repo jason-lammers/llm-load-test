@@ -1,0 +1,6 @@
+# llm-load-test from upstream (installs the `load-test` CLI)
+llm-load-test @ git+https://github.com/openshift-psap/llm-load-test.git@main
+
+kubernetes>=28.1.0
+pyyaml>=6.0.2
+

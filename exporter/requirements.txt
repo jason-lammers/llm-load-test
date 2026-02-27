@@ -1,13 +1,3 @@
-flask
-prometheus-client
-caikit-nlp-client==0.0.8
-deprecation
-flake8
-isort
-numpy
-pandas
-pyyaml
-pylint
-openshift
-kubernetes
-gunicorn
+flask>=3.0.0
+prometheus-client>=0.21.0
+gunicorn>=22.0.0
