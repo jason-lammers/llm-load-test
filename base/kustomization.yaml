@@ -11,4 +11,10 @@ resources:
   - clusterrole.yaml
   - clusterrolebinding.yaml
   - servicemonitor.yaml
-  - configmap.yaml
+
+configMapGenerator:
+  - name: observability-metrics-custom-allowlist
+    options:
+      disableNameSuffixHash: true
+    files:
+    - files/uwl_metrics_list.yaml
