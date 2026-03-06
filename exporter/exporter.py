@@ -133,18 +133,18 @@ def set_metrics() -> None:
         gauge._metrics.clear()
 
     if not os.path.isdir(OUTPUT_DIR):
-        LOG.warning("Output directory does not exist: %s", OUTPUT_DIR)
+        try:
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+        except OSError:
+            pass
+        # Directory missing or empty is normal until the runner has run at least once
         return
 
-    files = os.listdir(OUTPUT_DIR)
+    files = [f for f in os.listdir(OUTPUT_DIR) if f.endswith(".json")]
     if not files:
-        LOG.info("No output files found in %s", OUTPUT_DIR)
         return
 
     for filename in files:
-        if not filename.endswith(".json"):
-            continue
-
         filepath = os.path.join(OUTPUT_DIR, filename)
 
         # Parse model name and namespace from filename: {model}_{namespace}.json
