@@ -61,6 +61,10 @@ podman build -f exporter/Containerfile -t quay.io/rh-ee-istaplet/nerc-tools:llm-
 podman build -f runner/Containerfile -t quay.io/rh-ee-istaplet/nerc-tools:llm-load-test-runner runner/
 ```
 
+## Notes
+
+**Exporter logs:** You may see `[ERROR] Control server error: [Errno 13] Permission denied` from Gunicorn at startup. **This has no effect on the application** — metrics are served and scraped as usual. The error occurs when the container cannot create Gunicorn's control socket (e.g. under a read-only root filesystem). It is safe to ignore.
+
 ## Project Structure
 
 ```
