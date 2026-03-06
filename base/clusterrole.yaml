@@ -3,6 +3,11 @@ kind: ClusterRole
 metadata:
   name: llm-load-test-exporter-role
 rules:
-- apiGroups: [""]
-  resources: ["pods", "secrets"]
-  verbs: ["get", "list", "watch", "patch"]
+  # list pods across all namespaces to discover KServe InferenceService models
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list"]
+  # read auth tokens from model service-account secrets in any namespace
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
