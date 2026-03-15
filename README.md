@@ -1,6 +1,5 @@
 # llm-load-test-exporter
-
-Prometheus metrics exporter for [llm-load-test](https://github.com/openshift-psap/llm-load-test). Automatically discovers KServe InferenceService models in a Kubernetes/OpenShift cluster, runs load tests against them, and exports the results as Prometheus metrics.
+Automatically discovers KServe InferenceService models in a Kubernetes/OpenShift cluster, runs load tests against them, and exports the results as Prometheus metrics.
 
 ## Architecture
 
@@ -11,7 +10,7 @@ The application runs as a Kubernetes Deployment with two containers sharing an `
 | **runner** | Discovers models via the Kubernetes API, runs `llm-load-test` against each, writes JSON results to the shared volume |
 | **exporter** | Reads the JSON results and serves Prometheus metrics on `/metrics` (port 8080) |
 
-`llm-load-test` is installed as a **pip dependency** from the [upstream repository](https://github.com/openshift-psap/llm-load-test) — no vendored copy.
+`llm-load-test` is installed as a **pip dependency** from the [upstream repository](https://github.com/jason-lammers/llm-load-test.git) — no vendored copy.
 
 ## Metrics Exposed
 
